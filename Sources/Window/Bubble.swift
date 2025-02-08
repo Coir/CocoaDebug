@@ -8,6 +8,7 @@
 
 import UIKit
 import UIKit.UIGestureRecognizerSubclass
+import Combine
 
 protocol BubbleDelegate: AnyObject {
     func didTapBubble()
@@ -22,7 +23,7 @@ private var _width: CGFloat = 25
 private var _height: CGFloat = 25
 
 class Bubble: UIView {
-    
+    private var cancellables: Set<AnyCancellable> = .init()
     weak var delegate: BubbleDelegate?
     
     public var width: CGFloat = _width
@@ -35,9 +36,9 @@ class Bubble: UIView {
     
     
     static var originalPosition: CGPoint {
-        if CocoaDebugSettings.shared.bubbleFrameX != 0 && CocoaDebugSettings.shared.bubbleFrameY != 0 {
-            return CGPoint(x: CGFloat(CocoaDebugSettings.shared.bubbleFrameX), y: CGFloat(CocoaDebugSettings.shared.bubbleFrameY))
-        }
+//        if CocoaDebugSettings.shared.bubbleFrameX != 0 && CocoaDebugSettings.shared.bubbleFrameY != 0 {
+//            return CGPoint(x: CGFloat(CocoaDebugSettings.shared.bubbleFrameX), y: CGFloat(CocoaDebugSettings.shared.bubbleFrameY))
+//        }
         
         var h = 0
         if #available(iOS 11.0, *) {
@@ -165,17 +166,23 @@ class Bubble: UIView {
         self.addGestureRecognizer(panGesture)
         
         //notification
-        NotificationCenter.default.addObserver(forName: NSNotification.Name(rawValue: "reloadHttp_CocoaDebug"), object: nil, queue: OperationQueue.main) { [weak self] notification in
-            self?.reloadHttp_notification(notification)
-        }
-        
-        NotificationCenter.default.addObserver(forName: NSNotification.Name(rawValue: "deleteAllLogs_CocoaDebug"), object: nil, queue: OperationQueue.main) { [weak self] _ in
-            self?.deleteAllLogs_notification()
-        }
-        
-        NotificationCenter.default.addObserver(forName: NSNotification.Name(rawValue: "SHOW_COCOADEBUG_FORCE"), object: nil, queue: OperationQueue.main) { [weak self] _ in
-            self?.show_cocoadebug_force()
-        }
+        NotificationCenter.default.publisher(for: NSNotification.Name(rawValue: "reloadHttp_CocoaDebug"))
+            .receive(on: OperationQueue.main)
+            .sink {[weak self] notification in
+                self?.reloadHttp_notification(notification)
+            }.store(in: &cancellables)
+
+        NotificationCenter.default.publisher(for: NSNotification.Name(rawValue: "deleteAllLogs_CocoaDebug"))
+            .receive(on: OperationQueue.main)
+            .sink {[weak self] _ in
+                self?.deleteAllLogs_notification()
+            }.store(in: &cancellables)
+
+        NotificationCenter.default.publisher(for: NSNotification.Name(rawValue: "SHOW_COCOADEBUG_FORCE"))
+            .receive(on: DispatchQueue.main)
+            .sink {[weak self] _ in
+                self?.show_cocoadebug_force()
+            }.store(in: &cancellables)
     }
     
     required init?(coder aDecoder: NSCoder) {

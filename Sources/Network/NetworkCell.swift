@@ -18,7 +18,9 @@ class NetworkCell: UITableViewCell {
     @IBOutlet weak var requestUrlTextView: CustomTextView!
     @IBOutlet weak var imageLabel: UILabel!
     @IBOutlet weak var statusCodeView: UIView!
-    
+
+    @IBOutlet weak var h5Label: UILabel!
+
     var index: NSInteger = 0
     
     var httpModel: _HttpModel? {
@@ -82,7 +84,12 @@ class NetworkCell: UITableViewCell {
             if statusCodeLabel.text == "0" { //"0" means network unavailable
                 statusCodeLabel.text = "❌"
             }
-            
+            if httpModel?.isH5 == true {
+                h5Label.isHidden = false
+            } else {
+                h5Label.isHidden = true
+            }
+
             //Whether to display the image label
             if httpModel?.isImage == true
             {
@@ -126,7 +133,7 @@ class NetworkCell: UITableViewCell {
     //MARK: - awakeFromNib
     override func awakeFromNib() {
         super.awakeFromNib()
-        
+        h5Label.layer.cornerRadius = 4
         imageLabel.backgroundColor = Color.mainGreen
         requestTimeTextView.textColor = Color.mainGreen
         

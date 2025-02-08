@@ -7,9 +7,11 @@
 //
 
 import UIKit
+import Combine
 
 class UIBlockingBubble: UIView {
-    
+    private var cancellables: Set<AnyCancellable> = .init()
+
     static var size: CGSize {return CGSize(width: 70, height: 20)}
     
     private var uiBlockingLabel: UILabel? = {
@@ -42,16 +44,17 @@ class UIBlockingBubble: UIView {
         uiBlockingLabel?.adjustsFontSizeToFitWidth = true
         uiBlockingLabel?.text = "Normal"
         uiBlockingLabel?.textColor = .white
-        
-        NotificationCenter.default.addObserver(forName: NSNotification.Name(rawValue: "CocoaDebug_Detected_UI_Blocking"), object: nil, queue: OperationQueue.main) { [weak self] _ in
-            self?.uiBlockingLabel?.text = "Blocking"
-            self?.uiBlockingLabel?.textColor = .red
-            
-            DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 1) {[weak self] in
-                self?.uiBlockingLabel?.text = "Normal"
-                self?.uiBlockingLabel?.textColor = .white
-            }
-        }
+        NotificationCenter.default.publisher(for: NSNotification.Name(rawValue: "CocoaDebug_Detected_UI_Blocking"))
+            .receive(on: OperationQueue.main)
+            .sink {[weak self] _ in
+                self?.uiBlockingLabel?.text = "Blocking"
+                self?.uiBlockingLabel?.textColor = .red
+
+                DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 1) {[weak self] in
+                    self?.uiBlockingLabel?.text = "Normal"
+                    self?.uiBlockingLabel?.textColor = .white
+                }
+            }.store(in: &cancellables)
     }
     
     func updateFrame() {

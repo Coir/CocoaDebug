@@ -197,7 +197,11 @@ import Foundation
             _NetworkHelper.shared().mainColor = mainColor.hexColor
         }
     }
-    @objc public var additionalViewController: UIViewController? = nil
+    @objc public var additionalViewController: UIViewController? = nil {
+        didSet {
+            CocoaDebug.additionalViewController = additionalViewController
+        }
+    }
     
     //share via email
     @objc public var emailToRecipients: [String]? = nil
@@ -226,6 +230,8 @@ import Foundation
             _NetworkHelper.shared().onlyPrefixLogs = onlyPrefixLogs
         }
     }
+    @objc public var encryptKey = ""
+    @objc public var defaultEncryptKey = ""
     
     //protobuf
     @objc public var protobufTransferMap: [String: [String]]? = nil {

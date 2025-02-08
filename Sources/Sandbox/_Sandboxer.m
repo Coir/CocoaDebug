@@ -72,6 +72,14 @@
         directoryContentsTableViewController.fileInfo = [[_FileInfo alloc] initWithFileURL:self.homeFileURL];
         directoryContentsTableViewController.modalTransitionStyle = UIModalTransitionStyleFlipHorizontal;
         _homeDirectoryNavigationController = [[UINavigationController alloc] initWithRootViewController:directoryContentsTableViewController];
+        //适配iOS13以后的tabbar颜色、属性，沙盒的VC是OC写的，NavVC使用的是UINavVC，需要单独再设置一遍
+        UINavigationBarAppearance *barAppearance = UINavigationBarAppearance.new;
+        barAppearance.backgroundColor = UIColor.darkGrayColor;
+        barAppearance.titleTextAttributes = @{NSForegroundColorAttributeName: UIColor.systemGreenColor,
+                                              NSFontAttributeName: [UIFont boldSystemFontOfSize:20]};
+        _homeDirectoryNavigationController.navigationBar.tintColor = UIColor.systemGreenColor;
+        _homeDirectoryNavigationController.navigationBar.standardAppearance = barAppearance;
+        _homeDirectoryNavigationController.navigationBar.scrollEdgeAppearance = barAppearance;
     }
     
     return _homeDirectoryNavigationController;

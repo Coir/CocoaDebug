@@ -19,6 +19,7 @@ typedef NS_ENUM(NSUInteger, RequestSerializer) {
 @property (nonatomic,strong)NSURL   *url;
 @property (nonatomic,copy)NSData    *requestData;
 @property (nonatomic,copy)NSData    *responseData;
+@property (nonatomic,copy)NSData    *extraInfoData;
 @property (nonatomic,copy)NSString  *requestId;
 @property (nonatomic,copy)NSString  *method;
 @property (nonatomic,copy)NSString  *statusCode;
@@ -27,7 +28,9 @@ typedef NS_ENUM(NSUInteger, RequestSerializer) {
 @property (nonatomic,copy)NSString  *endTime;
 @property (nonatomic,copy)NSString  *totalDuration;
 @property (nonatomic,assign)BOOL    isImage;
+@property (nonatomic,assign)BOOL    isH5;
 
+@property (nonatomic,copy)NSData    *decryptResponseData;
 
 @property (nonatomic,copy)NSDictionary<NSString*, id>           *requestHeaderFields;
 @property (nonatomic,copy)NSDictionary<NSString*, id>           *responseHeaderFields;

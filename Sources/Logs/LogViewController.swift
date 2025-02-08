@@ -7,9 +7,10 @@
 //
 
 import UIKit
+import Combine
 
 class LogViewController: UIViewController {
-    
+    private var cancelable: Set<AnyCancellable> = .init()
     var reachEndDefault: Bool = true
     var reachEndRN: Bool = true
     var reachEndWeb: Bool = true
@@ -275,6 +276,7 @@ class LogViewController: UIViewController {
         
         deleteItem.tintColor = Color.mainGreen
         segmentedControl.tintColor = Color.mainGreen
+        segmentedControl.backgroundColor = .systemGray2
         
         if UIScreen.main.bounds.size.width == 320 {
             segmentedControl.setTitleTextAttributes([NSAttributedString.Key.font: UIFont.systemFont(ofSize: 11)], for: .normal)
@@ -283,10 +285,12 @@ class LogViewController: UIViewController {
         }
         
         //notification
-        NotificationCenter.default.addObserver(forName: NSNotification.Name(rawValue: "refreshLogs_CocoaDebug"), object: nil, queue: OperationQueue.main) { [weak self] _ in
-            self?.refreshLogs_notification()
-        }
-        
+        NotificationCenter.default.publisher(for: NSNotification.Name(rawValue: "refreshLogs_CocoaDebug"))
+           .receive(on: OperationQueue.main)
+                   .sink {[weak self] _ in
+                       self?.refreshLogs_notification()
+                   }.store(in: &cancelable)
+
         
         defaultTableView.tableFooterView = UIView()
         defaultTableView.delegate = self

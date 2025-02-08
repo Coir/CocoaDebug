@@ -101,7 +101,7 @@
     
     [self.view addGestureRecognizer:[[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(showOrHideNavigationBar)]];
     
-    self.activityIndicatorView = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
+    self.activityIndicatorView = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleMedium];
     [self.view addSubview:self.activityIndicatorView];
 }
 
@@ -123,6 +123,8 @@
                         dispatch_async(dispatch_get_main_queue(), ^{
                             [self.activityIndicatorView stopAnimating];
                             self.textView.text = content;
+                            // 新增自动滚动到底部，方便查看日志
+                            [self.textView setContentOffset:CGPointMake(0, self.textView.contentOffset.y) animated:YES];
                         });
                     } else {
                         dispatch_async(dispatch_get_main_queue(), ^{

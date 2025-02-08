@@ -18,20 +18,23 @@ class CocoaDebugTabBarController: UITabBarController {
         
         setChildControllers()
         
-        self.selectedIndex = CocoaDebugSettings.shared.tabBarSelectItem 
+        self.selectedIndex = CocoaDebugSettings.shared.tabBarSelectItem
+        
+        //适配iOS13以后的tabbar颜色、属性
         self.tabBar.tintColor = Color.mainGreen
         
-        //bugfix #issues-158
-        if #available(iOS 13, *) {
-            let appearance = UITabBarAppearance()
-            appearance.configureWithOpaqueBackground()
-            appearance.shadowColor = .clear    //removing navigationbar 1 px bottom border.
-//            self.tabBar.appearance().standardAppearance = appearance
-//            self.tabBar.appearance().scrollEdgeAppearance = appearance
-            self.tabBar.standardAppearance = appearance
-            if #available(iOS 15.0, *) {
-                self.tabBar.scrollEdgeAppearance = appearance
-            }
+        let itemAppearance = UITabBarItemAppearance()
+        // 设置正常和选中的颜色
+        
+        itemAppearance.selected.titleTextAttributes = [.foregroundColor: Color.mainGreen]
+        let barAppearence = UITabBarAppearance()
+        barAppearence.stackedLayoutAppearance = itemAppearance
+        barAppearence.backgroundColor = .darkGray
+        tabBar.standardAppearance = barAppearence
+        if #available(iOS 15.0, *) {
+            tabBar.scrollEdgeAppearance = barAppearence
+        } else {
+            // Fallback on earlier versions
         }
     }
     
@@ -54,7 +57,7 @@ class CocoaDebugTabBarController: UITabBarController {
     func setChildControllers() {
         
         //1.
-        let logs = UIStoryboard(name: "Logs", bundle: Bundle(for: CocoaDebug.self)).instantiateViewController(withIdentifier: "Logs")
+//        let logs = UIStoryboard(name: "Logs", bundle: Bundle(for: CocoaDebug.self)).instantiateViewController(withIdentifier: "Logs")
         let network = UIStoryboard(name: "Network", bundle: Bundle(for: CocoaDebug.self)).instantiateViewController(withIdentifier: "Network")
         let app = UIStoryboard(name: "App", bundle: Bundle(for: CocoaDebug.self)).instantiateViewController(withIdentifier: "App")
         
@@ -70,37 +73,25 @@ class CocoaDebugTabBarController: UITabBarController {
         
         //3.
         guard let additionalViewController = CocoaDebugSettings.shared.additionalViewController else {
-            self.viewControllers = [network, logs, sandbox, app]
+            self.viewControllers = [network, sandbox, app]
             return
         }
         
         //4.Add additional controller
-        var temp = [network, logs, sandbox, app]
-        
-        let nav = UINavigationController.init(rootViewController: additionalViewController)
-        nav.navigationBar.barTintColor = "#1f2124".hexColor
-        nav.tabBarItem = UITabBarItem.init(tabBarSystemItem: .more, tag: 4)
+        let nav = CocoaDebugNavigationController(rootViewController: additionalViewController)
+        nav.tabBarItem.title = "WebSocket"
+        nav.tabBarItem.image = UIImage.init(named: "_icon_file_type_logs", in: Bundle.init(for: CocoaDebug.self), compatibleWith: nil)
 
-        //****** copy codes from LogNavigationViewController.swift ******
-        nav.navigationBar.isTranslucent = false
-        
-        nav.navigationBar.tintColor = Color.mainGreen
-        nav.navigationBar.titleTextAttributes = [.font: UIFont.boldSystemFont(ofSize: 20),
-                                                 .foregroundColor: Color.mainGreen]
-        
-        let selector = #selector(CocoaDebugNavigationController.exit)
-        
-        
+        nav.navigationBar.tintColor = sandbox.navigationBar.tintColor
+        nav.navigationBar.standardAppearance = sandbox.navigationBar.standardAppearance
+        nav.navigationBar.scrollEdgeAppearance = sandbox.navigationBar.scrollEdgeAppearance
+
         let image = UIImage(named: "_icon_file_type_close", in: Bundle(for: CocoaDebugNavigationController.self), compatibleWith: nil)
-        let leftItem = UIBarButtonItem(image: image,
-                                       style: .done, target: self, action: selector)
+        let leftItem = UIBarButtonItem(image: image, style: .done, target: self, action: #selector(CocoaDebugNavigationController.exit))
         leftItem.tintColor = Color.mainGreen
         nav.topViewController?.navigationItem.leftBarButtonItem = leftItem
-        //****** copy codes from LogNavigationViewController.swift ******
         
-        temp.append(nav)
-        
-        self.viewControllers = temp
+        self.viewControllers = [network, sandbox, nav, app]
     }
     
     //MARK: - target action

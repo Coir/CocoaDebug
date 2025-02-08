@@ -6,11 +6,11 @@
 //  Copyright © 2020 man. All rights reserved.
 //
 
-import Foundation
-import UIKit
+import Combine
 import MessageUI
 
 class NetworkDetailViewController: UITableViewController, MFMailComposeViewControllerDelegate {
+    private var cancelables: Set<AnyCancellable> = .init()
     
     @IBOutlet weak var closeItem: UIBarButtonItem!
     @IBOutlet weak var naviItem: UINavigationItem!
@@ -49,7 +49,9 @@ class NetworkDetailViewController: UITableViewController, MFMailComposeViewContr
         if httpModel?.responseData == nil {
             httpModel?.responseData = Data.init()
         }
-        
+        if httpModel?.extraInfoData == nil {
+            httpModel?.extraInfoData = Data.init()
+        }
         //detect the request parameter format (JSON/Form)
         if requestSerializer == RequestSerializer.JSON {
             //JSON
@@ -125,6 +127,7 @@ class NetworkDetailViewController: UITableViewController, MFMailComposeViewContr
             let model_1 = NetworkDetailModel.init(title: "URL", content: "https://github.com/CocoaDebug/CocoaDebug", url: httpModel?.url.absoluteString, httpModel: httpModel)
             let model_3 = NetworkDetailModel.init(title: "REQUEST", content: requestContent, url: httpModel?.url.absoluteString, httpModel: httpModel)
             let model_5 = NetworkDetailModel.init(title: "RESPONSE", content: httpModel?.responseData.dataToPrettyPrintString(), url: httpModel?.url.absoluteString, httpModel: httpModel)
+            let model_10 = NetworkDetailModel.init(title: "EXTRAINFO", content: httpModel?.extraInfoData.dataToPrettyPrintString(), url: httpModel?.url.absoluteString, httpModel: httpModel)
             let model_6 = NetworkDetailModel.init(title: "ERROR", content: httpModel?.errorLocalizedDescription, url: httpModel?.url.absoluteString, httpModel: httpModel)
             let model_7 = NetworkDetailModel.init(title: "ERROR DESCRIPTION", content: httpModel?.errorDescription, url: httpModel?.url.absoluteString, httpModel: httpModel)
             //2.
@@ -158,6 +161,7 @@ class NetworkDetailViewController: UITableViewController, MFMailComposeViewContr
             detailModels.append(model_0)
             detailModels.append(model_8)
             detailModels.append(model_9)
+            detailModels.append(model_10)
         }
     }
     
@@ -413,16 +417,21 @@ extension NetworkDetailViewController {
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        guard detailModels.count > indexPath.row else { return UITableViewCell() }
         let cell = tableView.dequeueReusableCell(withIdentifier: "NetworkDetailCell", for: indexPath)
             as! NetworkDetailCell
         cell.detailModel = detailModels[indexPath.row]
-        
+        cell.index = indexPath
         //2.click edit view
         cell.tapEditViewCallback = { [weak self] detailModel in
             let vc = JsonViewController.instanceFromStoryBoard()
             vc.detailModel = detailModel
             self?.navigationController?.pushViewController(vc, animated: true)
         }
+        cell.encryptSwitchPublisher.sink {[weak self] (model, index) in
+            guard let self = self, let model = model, detailModels.count > index.row + 1 else { return }
+            detailModels.replaceSubrange(index.row...index.row+1, with: [model])
+        }.store(in: &cancelables)
         
         return cell
     }
@@ -432,7 +441,7 @@ extension NetworkDetailViewController {
 extension NetworkDetailViewController {
     
     override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        
+        guard detailModels.count > indexPath.row else { return 0 }
         let detailModel = detailModels[indexPath.row]
         
         if detailModel.blankContent == "..." {
@@ -451,9 +460,14 @@ extension NetworkDetailViewController {
                 if content == "" {
                     return 0
                 }
-                //Calculate NSString height
-                let height = content.height(with: UIFont.systemFont(ofSize: 13), constraintToWidth: (UIScreen.main.bounds.size.width - 30))
-                return height + 70
+                // 线上碰到数据太长，导致CPU爆满卡死，算不出高度，这里设置一个阈值，然后将cell中textView的isScrollAble开启
+                if content.count > 5000 {
+                    return 600
+                } else {
+                    //Calculate NSString height
+                    let height = content.height(with: UIFont.systemFont(ofSize: 13), constraintToWidth: (UIScreen.main.bounds.size.width - 30))
+                    return height + 70
+                }
             }
             return 0
         }

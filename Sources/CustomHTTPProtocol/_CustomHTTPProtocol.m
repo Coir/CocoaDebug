@@ -479,9 +479,7 @@ static NSString * kOurRecursiveRequestFlagProperty = @"com.apple.dts.CustomHTTPP
     //Handling errors 404...
     model = [self handleError:self.error model:model];
     
-    
-    if ([[_HttpDatasource shared] addHttpRequset:model])
-    {
+    if ([[_HttpDatasource shared] addHttpRequset:model]) {
         [[NSNotificationCenter defaultCenter] postNotificationName:@"reloadHttp_CocoaDebug" object:nil userInfo:@{@"statusCode":model.statusCode}];
     }
 }
@@ -848,6 +846,10 @@ static NSString * kOurRecursiveRequestFlagProperty = @"com.apple.dts.CustomHTTPP
 
 
     [[self client] URLProtocol:self didLoadData:data];
+    if ([[self.response.URL absoluteString] hasSuffix: @"mp4"]) {
+        // 屏蔽mp4视频, 避免data过大, 大量占用内存
+        return;
+    }
     [self.data appendData:data];//liman
 }
 

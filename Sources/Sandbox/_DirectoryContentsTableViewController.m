@@ -48,38 +48,12 @@
 {
     //****** copy codes from LogNavigationViewController.swift ******
     self.navigationController.navigationBar.translucent = NO;
-    
+    self.navigationController.navigationBar.backgroundColor = UIColor.darkGrayColor;
     self.navigationController.navigationBar.tintColor = [_NetworkHelper shared].mainColor;
     self.navigationController.navigationBar.titleTextAttributes = @{
                                                                     NSFontAttributeName:[UIFont boldSystemFontOfSize:20],
                                                                     NSForegroundColorAttributeName: [_NetworkHelper shared].mainColor
                                                                     };
-    
-    //bugfix #issues-158
-    if (@available(iOS 13.0, *)) {
-        UINavigationBarAppearance *appearance = [[UINavigationBarAppearance alloc] init];
-        [appearance configureWithOpaqueBackground];
-        appearance.shadowColor = [UIColor clearColor];
-        self.navigationController.navigationBar.standardAppearance = appearance;
-        self.navigationController.navigationBar.scrollEdgeAppearance = appearance;
-    }
-
-    
-    //swift:
-    
-    //bugfix #issues-158
-//    if #available(iOS 13, *) {
-//        let appearance = UINavigationBarAppearance()
-//        appearance.configureWithOpaqueBackground()
-//        // self.navigationController?.navigationBar.isTranslucent = true  // pass "true" for fixing iOS 15.0 black bg issue
-//        // self.navigationController?.navigationBar.tintColor = UIColor.white // We need to set tintcolor for iOS 15.0
-//        appearance.shadowColor = .clear    //removing navigationbar 1 px bottom border.
-////            UINavigationBar.appearance().standardAppearance = appearance
-////            UINavigationBar.appearance().scrollEdgeAppearance = appearance
-//        self.navigationBar.standardAppearance = appearance
-//        self.navigationBar.scrollEdgeAppearance = appearance
-//    }
-    
 }
 
 - (void)exit {
@@ -106,7 +80,7 @@
     [self.view addGestureRecognizer:tap];
     
     //liman
-    self.navigationController.navigationBar.barTintColor = [UIColor colorWithRed:31/255.0 green:33/255.0 blue:36/255.0 alpha:1.0];
+//    self.navigationController.navigationBar.barTintColor = [UIColor colorWithRed:31/255.0 green:33/255.0 blue:36/255.0 alpha:1.0];
     self.navigationItem.backBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"" style:UIBarButtonItemStylePlain target:nil action:nil];
     
     //liman
@@ -162,21 +136,59 @@
     
     //
     self.view.backgroundColor = [UIColor blackColor];
-    self.tableView = [[UITableView alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width, self.view.bounds.size.height - 44 - [UIApplication sharedApplication].statusBarFrame.size.height - 50) style:UITableViewStylePlain];
-    
-    
-    BOOL iPhoneX = NO;
-    if (@available(iOS 11.0, *)) {
-        UIWindow *mainWindow = [[UIApplication sharedApplication] keyWindow];
-        if (mainWindow.safeAreaInsets.top > 24.0) {
-            iPhoneX = YES;
-        }
-    }
-    
-    if (iPhoneX) {
-        self.tableView.frame = CGRectMake(0, 0, self.view.bounds.size.width, self.view.bounds.size.height - 44 - [UIApplication sharedApplication].statusBarFrame.size.height - 50 - 34);
-    }
-    
+//    self.tableView = [[UITableView alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width, self.view.bounds.size.height - 44 - [UIApplication sharedApplication].statusBarFrame.size.height - 50) style:UITableViewStylePlain];
+//    
+//    
+//    BOOL iPhoneX = NO;
+//    if (@available(iOS 11.0, *)) {
+//        UIWindow *mainWindow = [[UIApplication sharedApplication] keyWindow];
+//        if (mainWindow.safeAreaInsets.top > 24.0) {
+//            iPhoneX = YES;
+//        }
+//    }
+//    
+//    if (iPhoneX) {
+//        self.tableView.frame = CGRectMake(0, 0, self.view.bounds.size.width, self.view.bounds.size.height - 44 - [UIApplication sharedApplication].statusBarFrame.size.height - 50 - 34);
+//    }
+    self.tableView = [[UITableView alloc] init];
+    [self.view addSubview:self.tableView];
+    self.tableView.translatesAutoresizingMaskIntoConstraints = NO;
+    NSLayoutConstraint *top = [NSLayoutConstraint constraintWithItem:_tableView
+                                                                attribute:NSLayoutAttributeTop
+                                                                relatedBy:NSLayoutRelationEqual
+                                                                   toItem:self.view
+                                                                attribute:NSLayoutAttributeTop
+                                                               multiplier:1
+                                                                 constant:0
+                                    ];
+    NSLayoutConstraint *leading = [NSLayoutConstraint constraintWithItem:_tableView
+                                                                attribute:NSLayoutAttributeLeading
+                                                                relatedBy:NSLayoutRelationEqual
+                                                                   toItem:self.view
+                                                               attribute:NSLayoutAttributeLeading
+                                                               multiplier:1
+                                                                 constant:0
+                                    ];
+    NSLayoutConstraint *trailing = [NSLayoutConstraint constraintWithItem:_tableView
+                                                                attribute:NSLayoutAttributeTrailing
+                                                                relatedBy:NSLayoutRelationEqual
+                                                                   toItem:self.view
+                                                                attribute:NSLayoutAttributeTrailing
+                                                               multiplier:1.0
+                                                                 constant:0.0
+                                    ];
+    NSLayoutConstraint *bottom = [NSLayoutConstraint constraintWithItem:_tableView
+                                                                attribute:NSLayoutAttributeBottom
+                                                                relatedBy:NSLayoutRelationEqual
+                                                                   toItem:self.view
+                                                                attribute:NSLayoutAttributeBottom
+                                                               multiplier:1.0
+                                                                 constant:0.0
+                                    ];
+    [self.view addConstraints:@[top,leading,trailing,bottom]];
+
+
+
     
     self.tableView.dataSource = self;
     self.tableView.delegate = self;
@@ -186,7 +198,6 @@
     self.tableView.tableFooterView = [[UIView alloc] init];
     self.tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
     [self.tableView registerClass:[_FileTableViewCell class] forCellReuseIdentifier:_FileTableViewCellReuseIdentifier];
-    [self.view addSubview:self.tableView];
     
     self.searchBar = [[UISearchBar alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width, 44)];
     self.searchBar.delegate = self;

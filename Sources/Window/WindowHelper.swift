@@ -23,7 +23,7 @@ public class WindowHelper: NSObject {
     private override init() {
         window = CocoaDebugWindow(frame: UIScreen.main.bounds)
         // This is for making the window not to effect the StatusBarStyle
-        window.bounds.size.height = UIScreen.main.bounds.height.nextDown
+//        window.bounds.size.height = UIScreen.main.bounds.height.nextDown
         super.init()
         
 //        uiBlockingCounter.delegate = self
@@ -43,17 +43,22 @@ public class WindowHelper: NSObject {
             startUIBlockingMonitoring()
         }
 
-        
         if #available(iOS 13.0, *) {
             var success: Bool = false
-            
+
             for i in 0...10 {
                 DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + (0.1 * Double(i))) {[weak self] in
                     if success == true {return}
-                    
+
                     for scene in UIApplication.shared.connectedScenes {
                         if let windowScene = scene as? UIWindowScene {
-                            self?.window.windowScene = windowScene
+                            guard let self = self else { return }
+                            self.window.windowScene = windowScene
+//                            let statusbarHeight = windowScene.statusBarManager?.statusBarFrame.size.height ?? 20
+//                            self.window.frame.origin.y = statusbarHeight
+                            
+                            /// 调低window的高度，修复>=iOS16横屏的问题。。wired
+                            self.window.frame.size.height -= 0.1
                             success = true
                         }
                     }

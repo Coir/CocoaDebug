@@ -10,11 +10,13 @@ enum EditType {
     case unknown
     case requestHeader
     case responseHeader
+    case response
     case log
 }
 
 import Foundation
 import UIKit
+import JSONPreview
 
 class JsonViewController: UIViewController {
     
@@ -22,6 +24,9 @@ class JsonViewController: UIViewController {
     @IBOutlet weak var imageView: UIImageView!
     @IBOutlet weak var naviItem: UINavigationItem!
     
+    @IBOutlet weak var jsonPreview: JSONPreview!
+    
+    @IBOutlet weak var closeItem: UIBarButtonItem!
     var naviItemTitleLabel: UILabel?
     
     var editType: EditType  = .unknown
@@ -92,6 +97,9 @@ class JsonViewController: UIViewController {
         }
     }
     
+    @IBAction func closePage(_ sender: UIBarButtonItem) {
+        (self.navigationController as! CocoaDebugNavigationController).exit()
+    }
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -112,7 +120,9 @@ class JsonViewController: UIViewController {
         if detailModel?.title == "RESPONSE HEADER" {
             editType = .responseHeader
         }
-        
+        if detailModel?.title == "RESPONSE" {
+            editType = .response
+        }
         //setup UI
         if editType == .requestHeader
         {
@@ -135,6 +145,12 @@ class JsonViewController: UIViewController {
             if let data = logModel?.contentData {
                 textView.text = data.dataToString()
             }
+        }
+        else if editType == .response , let content =  detailModel?.content {
+            imageView.isHidden = true
+            textView.isHidden = true
+            jsonPreview.preview(content)
+            jsonPreview.isHidden = false
         }
         else
         {
